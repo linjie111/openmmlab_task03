@@ -1,0 +1,1113 @@
+2023-02-13 15:32:41,601 - mmseg - INFO - Multi-processing start method is `None`
+2023-02-13 15:32:41,602 - mmseg - INFO - OpenCV num_threads is `24
+2023-02-13 15:32:41,657 - mmseg - INFO - Environment info:
+------------------------------------------------------------
+sys.platform: linux
+Python: 3.8.13 (default, Mar 28 2022, 11:38:47) [GCC 7.5.0]
+CUDA available: True
+GPU 0: NVIDIA GeForce RTX 3090
+CUDA_HOME: /usr/local/cuda
+NVCC: Cuda compilation tools, release 11.1, V11.1.105
+GCC: gcc (Ubuntu 7.5.0-3ubuntu1~18.04) 7.5.0
+PyTorch: 1.8.2+cu111
+PyTorch compiling details: PyTorch built with:
+  - GCC 7.3
+  - C++ Version: 201402
+  - Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191122 for Intel(R) 64 architecture applications
+  - Intel(R) MKL-DNN v1.7.0 (Git Hash 7aed236906b1f7a05c0917e5257a1af05e9ff683)
+  - OpenMP 201511 (a.k.a. OpenMP 4.5)
+  - NNPACK is enabled
+  - CPU capability usage: AVX2
+  - CUDA Runtime 11.1
+  - NVCC architecture flags: -gencode;arch=compute_37,code=sm_37;-gencode;arch=compute_50,code=sm_50;-gencode;arch=compute_60,code=sm_60;-gencode;arch=compute_70,code=sm_70;-gencode;arch=compute_75,code=sm_75;-gencode;arch=compute_80,code=sm_80;-gencode;arch=compute_86,code=sm_86
+  - CuDNN 8.0.5
+  - Magma 2.5.2
+  - Build settings: BLAS_INFO=mkl, BUILD_TYPE=Release, CUDA_VERSION=11.1, CUDNN_VERSION=8.0.5, CXX_COMPILER=/opt/rh/devtoolset-7/root/usr/bin/c++, CXX_FLAGS= -Wno-deprecated -fvisibility-inlines-hidden -DUSE_PTHREADPOOL -fopenmp -DNDEBUG -DUSE_KINETO -DUSE_FBGEMM -DUSE_QNNPACK -DUSE_PYTORCH_QNNPACK -DUSE_XNNPACK -O2 -fPIC -Wno-narrowing -Wall -Wextra -Werror=return-type -Wno-missing-field-initializers -Wno-type-limits -Wno-array-bounds -Wno-unknown-pragmas -Wno-sign-compare -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wno-unused-result -Wno-unused-local-typedefs -Wno-strict-overflow -Wno-strict-aliasing -Wno-error=deprecated-declarations -Wno-stringop-overflow -Wno-psabi -Wno-error=pedantic -Wno-error=redundant-decls -Wno-error=old-style-cast -fdiagnostics-color=always -faligned-new -Wno-unused-but-set-variable -Wno-maybe-uninitialized -fno-math-errno -fno-trapping-math -Werror=format -Wno-stringop-overflow, LAPACK_INFO=mkl, PERF_WITH_AVX=1, PERF_WITH_AVX2=1, PERF_WITH_AVX512=1, TORCH_VERSION=1.8.2, USE_CUDA=ON, USE_CUDNN=ON, USE_EXCEPTION_PTR=1, USE_GFLAGS=OFF, USE_GLOG=OFF, USE_MKL=ON, USE_MKLDNN=ON, USE_MPI=OFF, USE_NCCL=ON, USE_NNPACK=ON, USE_OPENMP=ON, 
+
+TorchVision: 0.9.2+cu111
+OpenCV: 4.5.3
+MMCV: 1.5.3
+MMCV Compiler: GCC 7.3
+MMCV CUDA Compiler: 11.1
+MMSegmentation: 0.30.0+8ea3ea3
+------------------------------------------------------------
+
+2023-02-13 15:32:41,657 - mmseg - INFO - Distributed training: False
+2023-02-13 15:32:41,825 - mmseg - INFO - Config:
+norm_cfg = dict(type='SyncBN', requires_grad=True)
+model = dict(
+    type='EncoderDecoder',
+    pretrained='open-mmlab://resnet50_v1c',
+    backbone=dict(
+        type='ResNetV1c',
+        depth=50,
+        num_stages=4,
+        out_indices=(0, 1, 2, 3),
+        dilations=(1, 1, 2, 4),
+        strides=(1, 2, 1, 1),
+        norm_cfg=dict(type='SyncBN', requires_grad=True),
+        norm_eval=False,
+        style='pytorch',
+        contract_dilation=True),
+    decode_head=dict(
+        type='PSPHead',
+        in_channels=2048,
+        in_index=3,
+        channels=512,
+        pool_scales=(1, 2, 3, 6),
+        dropout_ratio=0.1,
+        num_classes=2,
+        norm_cfg=dict(type='SyncBN', requires_grad=True),
+        align_corners=False,
+        loss_decode=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
+    auxiliary_head=dict(
+        type='FCNHead',
+        in_channels=1024,
+        in_index=2,
+        channels=256,
+        num_convs=1,
+        concat_input=False,
+        dropout_ratio=0.1,
+        num_classes=2,
+        norm_cfg=dict(type='SyncBN', requires_grad=True),
+        align_corners=False,
+        loss_decode=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=0.4)),
+    train_cfg=dict(),
+    test_cfg=dict(mode='whole'))
+dataset_type = 'PascalVOCDataset'
+data_root = '/openbayes/input/input0/'
+img_norm_cfg = dict(
+    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_rgb=True)
+crop_size = (512, 512)
+train_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(type='LoadAnnotations'),
+    dict(type='Resize', img_scale=(2048, 512), ratio_range=(0.5, 2.0)),
+    dict(type='RandomCrop', crop_size=(512, 512), cat_max_ratio=0.75),
+    dict(type='RandomFlip', prob=0.5),
+    dict(type='PhotoMetricDistortion'),
+    dict(
+        type='Normalize',
+        mean=[123.675, 116.28, 103.53],
+        std=[58.395, 57.12, 57.375],
+        to_rgb=True),
+    dict(type='Pad', size=(512, 512), pad_val=0, seg_pad_val=255),
+    dict(type='DefaultFormatBundle'),
+    dict(type='Collect', keys=['img', 'gt_semantic_seg'])
+]
+test_pipeline = [
+    dict(type='LoadImageFromFile'),
+    dict(
+        type='MultiScaleFlipAug',
+        img_scale=(2048, 512),
+        flip=False,
+        transforms=[
+            dict(type='Resize', keep_ratio=True),
+            dict(type='RandomFlip'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='ImageToTensor', keys=['img']),
+            dict(type='Collect', keys=['img'])
+        ])
+]
+data = dict(
+    samples_per_gpu=4,
+    workers_per_gpu=4,
+    train=dict(
+        type='PascalVOCDataset',
+        data_root='/openbayes/input/input0/',
+        img_dir='src',
+        ann_dir='label',
+        split='/openbayes/home/splits/train.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(type='LoadAnnotations'),
+            dict(type='Resize', img_scale=(2048, 512), ratio_range=(0.5, 2.0)),
+            dict(type='RandomCrop', crop_size=(512, 512), cat_max_ratio=0.75),
+            dict(type='RandomFlip', prob=0.5),
+            dict(type='PhotoMetricDistortion'),
+            dict(
+                type='Normalize',
+                mean=[123.675, 116.28, 103.53],
+                std=[58.395, 57.12, 57.375],
+                to_rgb=True),
+            dict(type='Pad', size=(512, 512), pad_val=0, seg_pad_val=255),
+            dict(type='DefaultFormatBundle'),
+            dict(type='Collect', keys=['img', 'gt_semantic_seg'])
+        ]),
+    val=dict(
+        type='PascalVOCDataset',
+        data_root='/openbayes/input/input0/test/',
+        img_dir='src',
+        ann_dir='label',
+        split='/openbayes/home/splits/val.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(2048, 512),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]),
+    test=dict(
+        type='PascalVOCDataset',
+        data_root='/openbayes/input/input0/test/',
+        img_dir='src',
+        ann_dir='label',
+        split='/openbayes/home/splits/val.txt',
+        pipeline=[
+            dict(type='LoadImageFromFile'),
+            dict(
+                type='MultiScaleFlipAug',
+                img_scale=(2048, 512),
+                flip=False,
+                transforms=[
+                    dict(type='Resize', keep_ratio=True),
+                    dict(type='RandomFlip'),
+                    dict(
+                        type='Normalize',
+                        mean=[123.675, 116.28, 103.53],
+                        std=[58.395, 57.12, 57.375],
+                        to_rgb=True),
+                    dict(type='ImageToTensor', keys=['img']),
+                    dict(type='Collect', keys=['img'])
+                ])
+        ]))
+log_config = dict(
+    interval=50, hooks=[dict(type='TextLoggerHook', by_epoch=False)])
+dist_params = dict(backend='nccl')
+log_level = 'INFO'
+load_from = None
+resume_from = None
+workflow = [('train', 1)]
+cudnn_benchmark = True
+optimizer = dict(type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0005)
+optimizer_config = dict()
+lr_config = dict(policy='poly', power=0.9, min_lr=0.0001, by_epoch=False)
+runner = dict(type='IterBasedRunner', max_iters=10000)
+checkpoint_config = dict(by_epoch=False, interval=2000)
+evaluation = dict(interval=2000, metric='mIoU', pre_eval=True)
+work_dir = './work_dirs/city'
+gpu_ids = range(0, 1)
+auto_resume = False
+
+2023-02-13 15:32:41,825 - mmseg - INFO - Set random seed to 802955015, deterministic: False
+2023-02-13 15:32:42,324 - mmseg - INFO - initialize ResNetV1c with init_cfg {'type': 'Pretrained', 'checkpoint': 'open-mmlab://resnet50_v1c'}
+2023-02-13 15:32:42,397 - mmseg - INFO - initialize PSPHead with init_cfg {'type': 'Normal', 'std': 0.01, 'override': {'name': 'conv_seg'}}
+2023-02-13 15:32:42,516 - mmseg - INFO - initialize FCNHead with init_cfg {'type': 'Normal', 'std': 0.01, 'override': {'name': 'conv_seg'}}
+Name of parameter - Initialization information
+
+backbone.stem.0.weight - torch.Size([32, 3, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.stem.1.weight - torch.Size([32]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.stem.1.bias - torch.Size([32]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.stem.3.weight - torch.Size([32, 32, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.stem.4.weight - torch.Size([32]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.stem.4.bias - torch.Size([32]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.stem.6.weight - torch.Size([64, 32, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.stem.7.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.stem.7.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.conv1.weight - torch.Size([64, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.downsample.0.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.downsample.1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.0.downsample.1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.1.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.conv1.weight - torch.Size([64, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.bn1.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.bn1.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.conv2.weight - torch.Size([64, 64, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.bn2.weight - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.bn2.bias - torch.Size([64]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.conv3.weight - torch.Size([256, 64, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.bn3.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer1.2.bn3.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.conv1.weight - torch.Size([128, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.downsample.0.weight - torch.Size([512, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.downsample.1.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.0.downsample.1.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.1.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.2.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.conv1.weight - torch.Size([128, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.bn1.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.bn1.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.conv2.weight - torch.Size([128, 128, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.bn2.weight - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.bn2.bias - torch.Size([128]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.conv3.weight - torch.Size([512, 128, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.bn3.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer2.3.bn3.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.conv1.weight - torch.Size([256, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.downsample.0.weight - torch.Size([1024, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.downsample.1.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.0.downsample.1.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.1.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.2.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.3.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.4.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.conv1.weight - torch.Size([256, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.bn1.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.bn1.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.conv2.weight - torch.Size([256, 256, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.bn2.weight - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.bn2.bias - torch.Size([256]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.conv3.weight - torch.Size([1024, 256, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.bn3.weight - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer3.5.bn3.bias - torch.Size([1024]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.conv1.weight - torch.Size([512, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.downsample.0.weight - torch.Size([2048, 1024, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.downsample.1.weight - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.0.downsample.1.bias - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.1.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.conv1.weight - torch.Size([512, 2048, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.bn1.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.bn1.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.conv2.weight - torch.Size([512, 512, 3, 3]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.bn2.weight - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.bn2.bias - torch.Size([512]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.conv3.weight - torch.Size([2048, 512, 1, 1]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.bn3.weight - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+backbone.layer4.2.bn3.bias - torch.Size([2048]): 
+PretrainedInit: load from open-mmlab://resnet50_v1c 
+
+decode_head.conv_seg.weight - torch.Size([2, 512, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+decode_head.conv_seg.bias - torch.Size([2]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+decode_head.psp_modules.0.1.conv.weight - torch.Size([512, 2048, 1, 1]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.0.1.bn.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.0.1.bn.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.1.1.conv.weight - torch.Size([512, 2048, 1, 1]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.1.1.bn.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.1.1.bn.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.2.1.conv.weight - torch.Size([512, 2048, 1, 1]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.2.1.bn.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.2.1.bn.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.3.1.conv.weight - torch.Size([512, 2048, 1, 1]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.3.1.bn.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.psp_modules.3.1.bn.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.bottleneck.conv.weight - torch.Size([512, 4096, 3, 3]): 
+Initialized by user-defined `init_weights` in ConvModule  
+
+decode_head.bottleneck.bn.weight - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+decode_head.bottleneck.bn.bias - torch.Size([512]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+auxiliary_head.conv_seg.weight - torch.Size([2, 256, 1, 1]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+auxiliary_head.conv_seg.bias - torch.Size([2]): 
+NormalInit: mean=0, std=0.01, bias=0 
+
+auxiliary_head.convs.0.conv.weight - torch.Size([256, 1024, 3, 3]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+auxiliary_head.convs.0.bn.weight - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+
+auxiliary_head.convs.0.bn.bias - torch.Size([256]): 
+The value is the same before and after calling `init_weights` of EncoderDecoder  
+2023-02-13 15:32:42,523 - mmseg - INFO - EncoderDecoder(
+  (backbone): ResNetV1c(
+    (stem): Sequential(
+      (0): Conv2d(3, 32, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): _BatchNormXd(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): ReLU(inplace=True)
+      (3): Conv2d(32, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (4): _BatchNormXd(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (5): ReLU(inplace=True)
+      (6): Conv2d(32, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (7): _BatchNormXd(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (8): ReLU(inplace=True)
+    )
+    (maxpool): MaxPool2d(kernel_size=3, stride=2, padding=1, dilation=1, ceil_mode=False)
+    (layer1): ResLayer(
+      (0): Bottleneck(
+        (conv1): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn2): _BatchNormXd(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+        (downsample): Sequential(
+          (0): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (1): Bottleneck(
+        (conv1): Conv2d(256, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn2): _BatchNormXd(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (2): Bottleneck(
+        (conv1): Conv2d(256, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn2): _BatchNormXd(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+    )
+    (layer2): ResLayer(
+      (0): Bottleneck(
+        (conv1): Conv2d(256, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(2, 2), padding=(1, 1), bias=False)
+        (bn2): _BatchNormXd(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+        (downsample): Sequential(
+          (0): Conv2d(256, 512, kernel_size=(1, 1), stride=(2, 2), bias=False)
+          (1): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (1): Bottleneck(
+        (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn2): _BatchNormXd(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (2): Bottleneck(
+        (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn2): _BatchNormXd(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (3): Bottleneck(
+        (conv1): Conv2d(512, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn2): _BatchNormXd(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(128, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+    )
+    (layer3): ResLayer(
+      (0): Bottleneck(
+        (conv1): Conv2d(512, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn2): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+        (downsample): Sequential(
+          (0): Conv2d(512, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): _BatchNormXd(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (1): Bottleneck(
+        (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+        (bn2): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (2): Bottleneck(
+        (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+        (bn2): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (3): Bottleneck(
+        (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+        (bn2): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (4): Bottleneck(
+        (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+        (bn2): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (5): Bottleneck(
+        (conv1): Conv2d(1024, 256, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(256, 256, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+        (bn2): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(256, 1024, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(1024, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+    )
+    (layer4): ResLayer(
+      (0): Bottleneck(
+        (conv1): Conv2d(1024, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(2, 2), dilation=(2, 2), bias=False)
+        (bn2): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+        (downsample): Sequential(
+          (0): Conv2d(1024, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (1): _BatchNormXd(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        )
+      )
+      (1): Bottleneck(
+        (conv1): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(4, 4), dilation=(4, 4), bias=False)
+        (bn2): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+      (2): Bottleneck(
+        (conv1): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn1): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv2): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(4, 4), dilation=(4, 4), bias=False)
+        (bn2): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (conv3): Conv2d(512, 2048, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        (bn3): _BatchNormXd(2048, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (relu): ReLU(inplace=True)
+      )
+    )
+  )
+  init_cfg={'type': 'Pretrained', 'checkpoint': 'open-mmlab://resnet50_v1c'}
+  (decode_head): PSPHead(
+    input_transform=None, ignore_index=255, align_corners=False
+    (loss_decode): CrossEntropyLoss(avg_non_ignore=False)
+    (conv_seg): Conv2d(512, 2, kernel_size=(1, 1), stride=(1, 1))
+    (dropout): Dropout2d(p=0.1, inplace=False)
+    (psp_modules): PPM(
+      (0): Sequential(
+        (0): AdaptiveAvgPool2d(output_size=1)
+        (1): ConvModule(
+          (conv): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+      )
+      (1): Sequential(
+        (0): AdaptiveAvgPool2d(output_size=2)
+        (1): ConvModule(
+          (conv): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+      )
+      (2): Sequential(
+        (0): AdaptiveAvgPool2d(output_size=3)
+        (1): ConvModule(
+          (conv): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+      )
+      (3): Sequential(
+        (0): AdaptiveAvgPool2d(output_size=6)
+        (1): ConvModule(
+          (conv): Conv2d(2048, 512, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (bn): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+          (activate): ReLU(inplace=True)
+        )
+      )
+    )
+    (bottleneck): ConvModule(
+      (conv): Conv2d(4096, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+      (bn): _BatchNormXd(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (activate): ReLU(inplace=True)
+    )
+  )
+  init_cfg={'type': 'Normal', 'std': 0.01, 'override': {'name': 'conv_seg'}}
+  (auxiliary_head): FCNHead(
+    input_transform=None, ignore_index=255, align_corners=False
+    (loss_decode): CrossEntropyLoss(avg_non_ignore=False)
+    (conv_seg): Conv2d(256, 2, kernel_size=(1, 1), stride=(1, 1))
+    (dropout): Dropout2d(p=0.1, inplace=False)
+    (convs): Sequential(
+      (0): ConvModule(
+        (conv): Conv2d(1024, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+        (bn): _BatchNormXd(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+        (activate): ReLU(inplace=True)
+      )
+    )
+  )
+  init_cfg={'type': 'Normal', 'std': 0.01, 'override': {'name': 'conv_seg'}}
+)
+2023-02-13 15:32:42,530 - mmseg - INFO - Loaded 4824 images
+2023-02-13 15:32:44,894 - mmseg - INFO - Loaded 1206 images
+2023-02-13 15:32:44,896 - mmseg - INFO - Start running, host: root@wanglin-otgytxhdu107-main, work_dir: /output/mmsegmentation/work_dirs/city
+2023-02-13 15:32:44,896 - mmseg - INFO - Hooks will be executed in the following order:
+before_run:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_epoch:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_train_iter:
+(VERY_HIGH   ) PolyLrUpdaterHook                  
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+ -------------------- 
+after_train_iter:
+(ABOVE_NORMAL) OptimizerHook                      
+(NORMAL      ) CheckpointHook                     
+(LOW         ) IterTimerHook                      
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_train_epoch:
+(NORMAL      ) CheckpointHook                     
+(LOW         ) EvalHook                           
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_epoch:
+(LOW         ) IterTimerHook                      
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+before_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_iter:
+(LOW         ) IterTimerHook                      
+ -------------------- 
+after_val_epoch:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+after_run:
+(VERY_LOW    ) TextLoggerHook                     
+ -------------------- 
+2023-02-13 15:32:44,896 - mmseg - INFO - workflow: [('train', 1)], max: 10000 iters
+2023-02-13 15:32:44,896 - mmseg - INFO - Checkpoints will be saved to /output/mmsegmentation/work_dirs/city by HardDiskBackend.
+2023-02-13 15:33:05,946 - mmseg - INFO - Iter [50/10000]	lr: 4.978e-03, eta: 1:07:23, time: 0.406, data_time: 0.007, memory: 19893, decode.loss_ce: 0.0291, decode.acc_seg: 77.9135, aux.loss_ce: 0.0319, aux.acc_seg: 76.1063, loss: 0.0610
+2023-02-13 15:33:22,727 - mmseg - INFO - Iter [100/10000]	lr: 4.956e-03, eta: 1:01:12, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0004, decode.acc_seg: 80.0638, aux.loss_ce: 0.0018, aux.acc_seg: 80.0638, loss: 0.0023
+2023-02-13 15:33:39,426 - mmseg - INFO - Iter [150/10000]	lr: 4.934e-03, eta: 0:58:52, time: 0.334, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0004, decode.acc_seg: 78.5916, aux.loss_ce: 0.0013, aux.acc_seg: 78.5916, loss: 0.0017
+2023-02-13 15:33:56,154 - mmseg - INFO - Iter [200/10000]	lr: 4.912e-03, eta: 0:57:35, time: 0.335, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0004, decode.acc_seg: 78.3551, aux.loss_ce: 0.0011, aux.acc_seg: 78.3551, loss: 0.0014
+2023-02-13 15:34:12,898 - mmseg - INFO - Iter [250/10000]	lr: 4.890e-03, eta: 0:56:43, time: 0.335, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0004, decode.acc_seg: 78.6593, aux.loss_ce: 0.0010, aux.acc_seg: 78.6593, loss: 0.0013
+2023-02-13 15:34:29,671 - mmseg - INFO - Iter [300/10000]	lr: 4.868e-03, eta: 0:56:04, time: 0.335, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0003, decode.acc_seg: 79.6256, aux.loss_ce: 0.0008, aux.acc_seg: 79.6256, loss: 0.0011
+2023-02-13 15:34:46,466 - mmseg - INFO - Iter [350/10000]	lr: 4.846e-03, eta: 0:55:31, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0003, decode.acc_seg: 79.1828, aux.loss_ce: 0.0007, aux.acc_seg: 79.1828, loss: 0.0010
+2023-02-13 15:35:03,272 - mmseg - INFO - Iter [400/10000]	lr: 4.824e-03, eta: 0:55:03, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 77.5981, aux.loss_ce: 0.0006, aux.acc_seg: 77.5981, loss: 0.0008
+2023-02-13 15:35:20,079 - mmseg - INFO - Iter [450/10000]	lr: 4.802e-03, eta: 0:54:37, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 76.8749, aux.loss_ce: 0.0006, aux.acc_seg: 76.8749, loss: 0.0008
+2023-02-13 15:35:36,888 - mmseg - INFO - Iter [500/10000]	lr: 4.779e-03, eta: 0:54:13, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0003, decode.acc_seg: 77.3952, aux.loss_ce: 0.0006, aux.acc_seg: 77.3952, loss: 0.0008
+2023-02-13 15:35:53,698 - mmseg - INFO - Iter [550/10000]	lr: 4.757e-03, eta: 0:53:51, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 77.0211, aux.loss_ce: 0.0004, aux.acc_seg: 77.0211, loss: 0.0006
+2023-02-13 15:36:10,511 - mmseg - INFO - Iter [600/10000]	lr: 4.735e-03, eta: 0:53:29, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 78.4353, aux.loss_ce: 0.0005, aux.acc_seg: 78.4353, loss: 0.0007
+2023-02-13 15:36:27,326 - mmseg - INFO - Iter [650/10000]	lr: 4.713e-03, eta: 0:53:09, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 80.2311, aux.loss_ce: 0.0005, aux.acc_seg: 80.2311, loss: 0.0007
+2023-02-13 15:36:44,162 - mmseg - INFO - Iter [700/10000]	lr: 4.691e-03, eta: 0:52:49, time: 0.337, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 76.3789, aux.loss_ce: 0.0004, aux.acc_seg: 76.3789, loss: 0.0006
+2023-02-13 15:37:00,983 - mmseg - INFO - Iter [750/10000]	lr: 4.668e-03, eta: 0:52:29, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 79.5502, aux.loss_ce: 0.0004, aux.acc_seg: 79.5502, loss: 0.0006
+2023-02-13 15:37:17,805 - mmseg - INFO - Iter [800/10000]	lr: 4.646e-03, eta: 0:52:10, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 79.5955, aux.loss_ce: 0.0004, aux.acc_seg: 79.5955, loss: 0.0006
+2023-02-13 15:37:34,614 - mmseg - INFO - Iter [850/10000]	lr: 4.624e-03, eta: 0:51:50, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 78.0981, aux.loss_ce: 0.0004, aux.acc_seg: 78.0981, loss: 0.0006
+2023-02-13 15:37:51,435 - mmseg - INFO - Iter [900/10000]	lr: 4.602e-03, eta: 0:51:32, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 79.5296, aux.loss_ce: 0.0004, aux.acc_seg: 79.5296, loss: 0.0005
+2023-02-13 15:38:08,236 - mmseg - INFO - Iter [950/10000]	lr: 4.579e-03, eta: 0:51:13, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 77.9324, aux.loss_ce: 0.0004, aux.acc_seg: 77.9324, loss: 0.0005
+2023-02-13 15:38:25,035 - mmseg - INFO - Exp name: city.py
+2023-02-13 15:38:25,035 - mmseg - INFO - Iter [1000/10000]	lr: 4.557e-03, eta: 0:50:54, time: 0.336, data_time: 0.003, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 77.6903, aux.loss_ce: 0.0003, aux.acc_seg: 77.6903, loss: 0.0005
+2023-02-13 15:38:41,835 - mmseg - INFO - Iter [1050/10000]	lr: 4.535e-03, eta: 0:50:36, time: 0.336, data_time: 0.003, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 78.9639, aux.loss_ce: 0.0003, aux.acc_seg: 78.9639, loss: 0.0005
+2023-02-13 15:38:58,627 - mmseg - INFO - Iter [1100/10000]	lr: 4.513e-03, eta: 0:50:17, time: 0.336, data_time: 0.003, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 78.0686, aux.loss_ce: 0.0003, aux.acc_seg: 78.0686, loss: 0.0004
+2023-02-13 15:39:15,432 - mmseg - INFO - Iter [1150/10000]	lr: 4.490e-03, eta: 0:49:59, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 78.7885, aux.loss_ce: 0.0003, aux.acc_seg: 78.7885, loss: 0.0005
+2023-02-13 15:39:32,223 - mmseg - INFO - Iter [1200/10000]	lr: 4.468e-03, eta: 0:49:41, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 80.1319, aux.loss_ce: 0.0003, aux.acc_seg: 80.1319, loss: 0.0005
+2023-02-13 15:39:51,151 - mmseg - INFO - Iter [1250/10000]	lr: 4.446e-03, eta: 0:49:38, time: 0.379, data_time: 0.047, memory: 19893, decode.loss_ce: 0.0002, decode.acc_seg: 79.3578, aux.loss_ce: 0.0003, aux.acc_seg: 79.3578, loss: 0.0005
+2023-02-13 15:40:07,955 - mmseg - INFO - Iter [1300/10000]	lr: 4.423e-03, eta: 0:49:20, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 79.7574, aux.loss_ce: 0.0003, aux.acc_seg: 79.7574, loss: 0.0004
+2023-02-13 15:40:24,754 - mmseg - INFO - Iter [1350/10000]	lr: 4.401e-03, eta: 0:49:01, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 76.3101, aux.loss_ce: 0.0002, aux.acc_seg: 76.3101, loss: 0.0004
+2023-02-13 15:40:41,558 - mmseg - INFO - Iter [1400/10000]	lr: 4.378e-03, eta: 0:48:43, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 79.2392, aux.loss_ce: 0.0002, aux.acc_seg: 79.2392, loss: 0.0004
+2023-02-13 15:40:58,350 - mmseg - INFO - Iter [1450/10000]	lr: 4.356e-03, eta: 0:48:25, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 79.8443, aux.loss_ce: 0.0002, aux.acc_seg: 79.8443, loss: 0.0004
+2023-02-13 15:41:15,153 - mmseg - INFO - Iter [1500/10000]	lr: 4.334e-03, eta: 0:48:07, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 79.2426, aux.loss_ce: 0.0002, aux.acc_seg: 79.2426, loss: 0.0004
+2023-02-13 15:41:31,946 - mmseg - INFO - Iter [1550/10000]	lr: 4.311e-03, eta: 0:47:49, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 78.0780, aux.loss_ce: 0.0003, aux.acc_seg: 78.0780, loss: 0.0004
+2023-02-13 15:41:48,735 - mmseg - INFO - Iter [1600/10000]	lr: 4.289e-03, eta: 0:47:31, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 77.0464, aux.loss_ce: 0.0002, aux.acc_seg: 77.0464, loss: 0.0003
+2023-02-13 15:42:05,536 - mmseg - INFO - Iter [1650/10000]	lr: 4.266e-03, eta: 0:47:13, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 77.8161, aux.loss_ce: 0.0002, aux.acc_seg: 77.8161, loss: 0.0004
+2023-02-13 15:42:22,327 - mmseg - INFO - Iter [1700/10000]	lr: 4.244e-03, eta: 0:46:55, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 79.3666, aux.loss_ce: 0.0002, aux.acc_seg: 79.3666, loss: 0.0003
+2023-02-13 15:42:39,134 - mmseg - INFO - Iter [1750/10000]	lr: 4.221e-03, eta: 0:46:37, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 79.1361, aux.loss_ce: 0.0002, aux.acc_seg: 79.1361, loss: 0.0003
+2023-02-13 15:42:55,939 - mmseg - INFO - Iter [1800/10000]	lr: 4.199e-03, eta: 0:46:20, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 79.3511, aux.loss_ce: 0.0002, aux.acc_seg: 79.3511, loss: 0.0004
+2023-02-13 15:43:12,731 - mmseg - INFO - Iter [1850/10000]	lr: 4.176e-03, eta: 0:46:02, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 78.0999, aux.loss_ce: 0.0002, aux.acc_seg: 78.0999, loss: 0.0003
+2023-02-13 15:43:29,533 - mmseg - INFO - Iter [1900/10000]	lr: 4.154e-03, eta: 0:45:45, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 77.1961, aux.loss_ce: 0.0002, aux.acc_seg: 77.1961, loss: 0.0003
+2023-02-13 15:43:46,338 - mmseg - INFO - Iter [1950/10000]	lr: 4.131e-03, eta: 0:45:27, time: 0.336, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 77.8163, aux.loss_ce: 0.0002, aux.acc_seg: 77.8163, loss: 0.0003
+2023-02-13 15:44:03,100 - mmseg - INFO - Saving checkpoint at 2000 iterations
+2023-02-13 15:44:04,158 - mmseg - INFO - Exp name: city.py
+2023-02-13 15:44:04,158 - mmseg - INFO - Iter [2000/10000]	lr: 4.109e-03, eta: 0:45:14, time: 0.357, data_time: 0.004, memory: 19893, decode.loss_ce: 0.0001, decode.acc_seg: 77.8115, aux.loss_ce: 0.0002, aux.acc_seg: 77.8115, loss: 0.0003
