@@ -1,6 +1,6 @@
 # openmmlab_task03
 
-##项目截图
+## 项目截图
 ![image](project_screeshot.jpg)
 
 ## 数据集链接 https://www.kaggle.com/datasets/hyyyrwang/buildings-dataset
