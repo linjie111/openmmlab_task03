@@ -15,3 +15,8 @@ mmdet                          2.25.0
 mmengine                       0.5.0
 mmsegmentation                 0.30.0      /output/mmsegmentation
 ```
+
+模型链接
+
+链接：https://pan.baidu.com/s/17h5onUtgnnifWZsUw1QZow?pwd=ro71 
+提取码：ro71
